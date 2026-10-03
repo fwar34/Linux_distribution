@@ -49,6 +49,15 @@ fcitx5 -r
 然后在 Fcitx5 配置里添加 **Rime / 中州韵** 输入法。  
 如果候选框不显示，Ubuntu 26.04 的 Wayland 环境建议安装并启用 **Input Method Panel** GNOME 扩展。
 
----
-
-如果你说的 “dms” 不是指 Linux 桌面，而是某个具体系统或软件，比如 Deepin、DMS 终端、某个国产系统，可以把完整名称或截图发我，我再按那个环境给你写对应命令。
+## 在 niri 中 设置 fcitx5 环境变量
+在 `~/.config/niri/config.kdl` 中添加如下环境变量，开机启动 fcitx5
+```bash
+// fcitx5 环境变量设置
+environment {
+  QT_IM_MODULE "fcitx"
+  XMODIFIERS "@im=fcitx"
+  INPUT_METHOD "fcitx"
+}
+// 开机启动 fcitx5
+spawn-at-startup "fcitx5" "-d"
+```
