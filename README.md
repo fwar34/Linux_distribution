@@ -123,4 +123,36 @@ cyan    = "#7dcfff"
 快捷键粘贴：Ctrl+Shift+V
 如果 Ctrl+Shift+C 不生效，多半是 wl-clipboard 没装，或者 Alacritty 没有重启。
 white   = "#a9b1d6"
+
+## 键盘映射
+使用 keyd 进行精细化的映射 `apt install keyd`，设置配置文件 `/etc/keyd/default.conf` 如下
 ```
+[ids]
+# 任意键盘都生效
+*
+
+[main]
+# CapsLock → 左 Ctrl
+capslock = leftcontrol
+# 右 Ctrl → End
+rightcontrol = end
+# 右 Alt → Home
+rightalt = home
+# 右 Shift → End
+rightshift = end
+
+
+# 最经典的例子是将 CapsLock 变成一个 导航层（按住 CapsLock 时，HJKL 变成方向键）
+# [ids]
+# *
+#
+# [main]
+# capslock = layer(nav)
+#
+# [nav]
+# h = left
+# j = down
+# k = up
+# l = right
+```
+重载 keyd `sudo systemctl restart keyd`
