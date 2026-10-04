@@ -101,7 +101,7 @@ builtin_box_drawing = true
 style = { shape = "Beam", blinking = "Off" }
 
 [selection]
-save_to_clipboard = true
+save_to_clipboard = true # wayland 安装 wl-clipboard
 
 [colors.primary]
 background = "#0a0a0f"
@@ -115,5 +115,12 @@ yellow  = "#e0af68"
 blue    = "#7aa2f7"
 magenta = "#bb9af7"
 cyan    = "#7dcfff"
+```
+* 复制 / 粘贴方式
+在 Alacritty 里用鼠标选中文本后，会自动进入系统剪贴板。
+复制到其它程序：在 Alacritty 里用鼠标选中文字，然后到目标程序按 Ctrl+V。
+快捷键复制：Ctrl+Shift+C
+快捷键粘贴：Ctrl+Shift+V
+如果 Ctrl+Shift+C 不生效，多半是 wl-clipboard 没装，或者 Alacritty 没有重启。
 white   = "#a9b1d6"
 ```
