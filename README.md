@@ -36,6 +36,17 @@ nano ~/.local/share/fcitx5/rime/default.custom.yaml
 patch:
   schema_list:
     - schema: double_pinyin_flypy
+  switches:
+    - name: ascii_mode
+      reset: 0
+      states: [ "中文", "西文" ]
+    - name: full_shape
+      states: [ "半角", "全角" ]
+    - name: simplification
+      reset: 1  # 这里的 1 代表默认开启简体中文
+      states: [ "汉简", "漢繁" ]
+    - name: ascii_punct
+      states: [ "。,", ".," ]
 ```
 
 `double_pinyin_flypy` 就是小鹤双拼。
