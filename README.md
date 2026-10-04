@@ -38,7 +38,7 @@ patch:
     - schema: double_pinyin_flypy
   switches:
     - name: ascii_mode
-      reset: 0
+      reset: 1 # 默认输入英文
       states: [ "中文", "西文" ]
     - name: full_shape
       states: [ "半角", "全角" ]
