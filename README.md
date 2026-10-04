@@ -86,7 +86,7 @@ program = "/usr/bin/bash"
 [window]
 padding = { x = 12, y = 12 }
 opacity = 0.95
-decorations = "Full"
+decorations = "none"
 dynamic_title = true
 
 [scrolling]
