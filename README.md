@@ -187,3 +187,44 @@ pango/Qt 路径 修复后 vs SC 参考          : 一致
 回退：rm ~/.config/fontconfig/conf.d/99-cjk-prefer-sc.conf 即可。
 只改了 sans-serif（界面正文用的就是它）。serif/monospace 里的汉字仍是日文字形——实测那两条一旦加上，衬线/等宽的拉丁字母也会被换成 Noto CJK 自带的拉丁字形，所以我按你选的只改 sans。
 规则不带语言条件，所以带 lang="ja" 的日文页面以后也会用简体字形。你要是有看日文站的需求，我可以再加一条 lang 含 ja 时优先 JP 的规则排在后面。
+
+## 弹窗问题
+### 问：clash在settings中打卡TUN服务模式怎么一直卡着不动，我使用MOD+D启动的clash，clash打卡服务的时候也没有弹出让我输入root密码的弹窗
+答：1. 服务根本没装。 TUN 模式需要特权服务 clash-verge-service，而：
+```
+systemctl is-enabled clash-verge-service  →  not-found（单元不存在）
+App 日志: [Service] Service is NotInstalled ... running privileged service action Install
+```
+rpm 只装了 /usr/bin/clash-verge-service-install 这个安装器（ELF 二进制），系统服务单元要靠它写入。
+
+2. 提权调用没有 polkit 代理可弹窗。 从 GUI 二进制里读出的逻辑是：
+```
+pkexec --disable-internal-agent ...Install...   ；失败才 ", falling back to sudo"
+```
+--disable-internal-agent 的含义就是"不要用 pkexec 自带的终端提示，必须有图形 polkit 代理"。而你机器上：
+```
+polkit / polkit-libs / polkit-pkla-compat    ← 只有框架，没有任何认证代理
+（empower.rules 是 systemd 自带的文件，不是 empower 代理）
+niri 的 spawn-at-startup 只有 noctalia 和 fcitx5，也不跑 XDG autostart
+```
+所以提权请求发出去后没人能问密码，PAM 会话瞬间失败：
+```
+polkit-agent-helper-1: pam_unix(polkit-1:auth): conversation failed
+polkit-agent-helper-1: auth could not identify password for [feng]
+polkitd: Operator of unix-process:unknown FAILED to authenticate to gain authorization
+       for action org.freedesktop.policykit.exec
+```
+你是 Mod+D 启动的，没有 TTY，sudo 那条回退路也走不通，于是 GUI 就停在 "running privileged service action Install" 死等。
+* 怎么改
+修好图形提权（以后更新、挂盘、改系统设置都会用到）。仓库里确认可装的是 lxqt-policykit：
+```bash
+sudo dnf install lxqt-policykit
+rpm -ql lxqt-policykit | grep lxqt-policykit-agent        # 确认可执行文件路径，通常是 lxqt-policykit-agent
+```
+然后在 ~/.config/niri/config.kdl 的 spawn-at-startup 里加一行（路径按上面确认的填）：
+/usr/libexec 不在 PATH 里，所以配置里必须写绝对路径。在 ~/.config/niri/config.kdl 的 spawn-at-startup 区域加一行：
+```
+spawn-at-startup "/usr/libexec/lxqt-policykit-agent"
+```
+现有那两行是 noctalia 和 fcitx5 -d，加在它们后面即可。之后重新登录 niri 就自动拉起。
+重新登录 niri 后，pkexec 才会有弹窗。
