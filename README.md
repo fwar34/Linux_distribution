@@ -156,3 +156,34 @@ rightshift = end
 # l = right
 ```
 重载 keyd `sudo systemctl restart keyd`
+
+
+# niri+noctalia on Fedora44
+## 字体问题
+### 问：edge当前的汉字的“复”，“关”等这些字体怎么窄一些，在noctalia的设置程序中一样的问题
+答：不是 Edge 的问题，也不是 noctalia 的问题，而是 fontconfig 在"没有语言标记"时的汉字回退顺序：
+
+系统只有 Noto Sans CJK 这一个 TTC 合集，里面 JP/SC/TC/KR/HK 各是一个 face，JP 是 index 0；
+应用做逐字回退时通常不带 lang=zh，于是 fontconfig 在多个 face 同分时按文件顺序取到 JP；
+带 lang=zh-cn 时才会选 SC，所以 fc-match 'sans-serif:lang=zh-cn' 和 fc-match ':charset=590d' 结果不一样；
+复/关 恰好是日文字形收得明显更紧的两个字，所以你一眼看出来"窄"。带 lang 处理的 Firefox 基本看不出来，Chromium 和 Qt 就一起中招。
+证据（字节级比对，不是肉眼判断）：
+```
+Edge 默认渲染 vs 显式 'Noto Sans CJK JP' : 字节完全一致   ← 确认走的是日文字形
+Edge 默认渲染 vs 显式 'Noto Sans CJK SC' : 不同
+pango/Qt 路径 修复前 vs JP 参考          : 一致
+pango/Qt 路径 修复后 vs SC 参考          : 一致
+```
+顺带说明为什么不是"字宽"问题：我把所有含这两个字的 face 都量了一遍，`advance 全都是 1000/1000 全宽`，所以纯属字形设计差异，font-feature/缩放那类手段都治不了。
+* 怎么改
+新建了 99-cjk-prefer-sc.conf（放在用户 ~/.config/fontconfig/conf.d 里，会被 /etc/fonts/fonts.conf 加载，不覆盖系统配置）：
+```xml
+<alias binding="strong">
+  <family>sans-serif</family>
+  <prefer><family>Noto Sans CJK SC</family></prefer>
+</alias>
+```
+*回退与取舍
+回退：rm ~/.config/fontconfig/conf.d/99-cjk-prefer-sc.conf 即可。
+只改了 sans-serif（界面正文用的就是它）。serif/monospace 里的汉字仍是日文字形——实测那两条一旦加上，衬线/等宽的拉丁字母也会被换成 Noto CJK 自带的拉丁字形，所以我按你选的只改 sans。
+规则不带语言条件，所以带 lang="ja" 的日文页面以后也会用简体字形。你要是有看日文站的需求，我可以再加一条 lang 含 ja 时优先 JP 的规则排在后面。
